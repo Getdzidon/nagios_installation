@@ -10,8 +10,8 @@ Today we will set up and monitor the Linux server in Nagios. First of all, Nagio
 Steps to use:
 
 Create two EC2 instances (1 named Nagios_Server and the other Nagios_Host)
-1. Allow inbound rules for ports 20(SSH), 443 (https), 80 (HTTP), 8080 (Custom TCP), 8081 (Custom TCP), and 2377 (Custom TCP) for TCP and All ICMP - IPV4 for the Nagios_Server -  refer to step 1 of this guide https://nagios-plugins.org/doc/man/index.html
-2. Allow inbound rules for ports 20(SSH), 443 (HTTPS), and 80 (http) for the Nagios Host
+1. Allow inbound rules for ports 22(SSH), 443 (https), 80 (HTTP), 8080 (Custom TCP), 8081 (Custom TCP), and 2377 (Custom TCP) for TCP and All ICMP - IPV4 for the Nagios_Server -  refer to step 1 of this guide https://nagios-plugins.org/doc/man/index.html
+2. Allow inbound rules for ports 22(SSH), 443 (HTTPS), and 80 (http) for the Nagios Host
 3. Run the FIRST script (Nagios_server1.sh) on the Nagios_Server and interact where needed
 4. Sign in to nagios using <your-nagios-server-public-ip>/nagios eg: 25.12.14.15/nagios
 5. Run the SECOND script (Nagios_server2.sh) on the Nagios Server
