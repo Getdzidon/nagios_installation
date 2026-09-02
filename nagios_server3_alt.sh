@@ -58,21 +58,6 @@ define service {
 }
 
 
-# Define a DNS check service on nagios-host
-define service {
-    use                     generic-service
-    hostgroup_name          linux-hosts-for-nagios-monitoring
-    service_description     DNS
-    check_command           check_dns!google.com
-}
-
-define service {
-    use                     generic-service
-    hostgroup_name          linux-hosts-for-nagios-monitoring
-    service_description     DNS Port
-    check_command           check_tcp!53
-}
-
 # Define a service to "ping" the local machine
 define service {
 
