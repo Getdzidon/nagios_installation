@@ -83,8 +83,8 @@ sudo bash -c 'cat > index.html <<EOL
     <div class="card">
         <h2>Hey there!</h2>
         <p>Welcome!</p>
-        <p>This is a Test Webpage by Donatus</p>
-        <p>Jomacs DevOps Trainee</p>
+        <p>This is a Test Webpage on Host Number </p>
+        <p>By Firstbyte Trainees</p>
         <p class="status">Online</p>
     </div>
 </body>
