@@ -70,7 +70,7 @@ Follow the prompts whenever user interaction is required.
 
 ---
 
-### 2. Log in to the Nagios Web Interface
+### 2. Log in to the Nagios Web Interface using nagiosadmin (set in nagios_server1.sh line 77) and password you set at script runtime
 
 Open your browser and visit:
 
@@ -98,7 +98,7 @@ Nagios_server2.sh
 
 ### 4. Apply Configuration Changes
 
-Follow **Step 22** of Aminu's online guide to reschedule and apply the configuration changes.
+Follow **Step 22** of this guide (https://medium.com/@princeashok069/nagios-practical-028bd64c5c88) to reschedule and apply the configuration changes.
 
 ---
 
