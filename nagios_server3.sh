@@ -10,21 +10,91 @@
 sudo bash -c 'cat > /usr/local/nagios/etc/servers/nagihost.cfg <<EOL
 define host {
     use                             linux-server
-    host_name                       nagihost
+    host_name                       nagios-client
     alias                           My first Apache server
-    address                         52.59.195.250
+    address                         63.187.57.208
     max_check_attempts              5
     check_period                    24x7
     notification_interval           30
     notification_period             24x7
 }
 
+# Define a service to check HTTP on the local machine.
+# Disable notifications for this service by default, as not all users may have HTTP enabled.
 define service {
    use                      generic-service
-   host_name                nagihost
+   host_name                nagios-client
    service_description      HTTP
    check_command            check_http
 }
+
+# Define a DNS check service on nagios-client
+define service {
+      use                    generic-service
+      host_name              nagios-client
+      service_description    DNS
+      check_command          check_dns
+      notification_enabled   0
+}
+
+# Define a service to "ping" the local machine
+define service {
+
+    use                     generic-service           ; Name of service template to use
+    host_name               nagios-client
+    service_description     PING
+    check_command           check_ping!100.0,20%!500.0,60%
+}
+
+# Define a service to check the disk space of the root partition
+# on the local machine.  Warning if < 20% free, critical if
+# < 10% free space on partition.
+
+define service {
+
+    use                     generic-service           ; Name of service template to use
+    host_name               nagios-client
+    service_description     Root Partition
+    check_command           check_local_disk!20%!10%!/
+}
+
+
+# Define a service to check the number of currently logged in
+# users on the local machine.  Warning if > 20 users, critical
+# if > 50 users.
+
+define service {
+
+    use                     generic-service           ; Name of service template to use
+    host_name               nagios-client
+    service_description     Current Users
+    check_command           check_local_users!20!50
+}
+
+# Define a service to check the number of currently running procs
+# on the local machine.  Warning if > 250 processes, critical if
+# > 400 processes.
+
+define service {
+
+    use                     generic-service           ; Name of service template to use
+    host_name               nagios-client
+    service_description     Total Processes
+    check_command           check_local_procs!250!400!RSZDT
+}
+
+
+
+# Define a service to check the load on the local machine.
+
+define service {
+
+    use                     generic-service           ; Name of service template to use
+    host_name               nagios-client
+    service_description     Current Load
+    check_command           check_local_load!5.0,4.0,3.0!10.0,6.0,4.0
+}
+
 EOL'
 sudo systemctl restart nagios.service #to restart nagios server
 
