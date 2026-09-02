@@ -23,10 +23,10 @@ This guide uses:
 Create two EC2 instances:
 
 - **Nagios_Server**
-Change name **sudo hostnamectl set-hostname nagios-server**
+Change name - sudo hostnamectl set-hostname nagios-server
 
 - **Nagios-Client**
-Change name to **sudo hostnamectl set-hostname nagios-client**
+Change name to - sudo hostnamectl set-hostname nagios-client
 
 ### Security Group Rules
 
