@@ -113,7 +113,7 @@ define service {
     use                     generic-service
     hostgroup_name          linux-hosts-for-nagios-monitoring
     service_description     Current Users
-    check_command           check_nrpe!check_users!-w 5 -c 10
+    check_command           check_nrpe!check_active_users
 }
 
 
