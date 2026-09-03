@@ -3,6 +3,7 @@
 # Open Ports 8080, 8081 and 2377 for TCP
 # ON THE NAGIOS SERVER
 # ref: https://medium.com/@princeashok069/nagios-practical-028bd64c5c88
+
 # Steps 2 to 16. Be sure to run the rest of the commands manually after this
 # The steps from 17 onward typically involve post-installation tasks, such as fixing specific issues, adding hosts, and setting up monitoring for remote machines, which might be seen as extensions rather than core parts of the installation.
 
@@ -55,7 +56,12 @@ sudo a2enmod rewrite
 sudo a2enmod cgi
 
 # Step 11 - Configure the firewall
+sudo ufw allow OpenSSH # Note : This command allows SSH connections through the firewall, which is essential for remote access to the server. You may need to adjust this command based on your specific firewall configuration and security requirements.
 sudo ufw allow Apache
+sudo ufw allow 'Apache Secure'
+sudo ufw allow 8080/tcp
+sudo ufw allow 8081/tcp
+sudo ufw allow 2377/tcp
 sudo ufw enable
 sudo ufw reload
 
@@ -78,9 +84,8 @@ sudo htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
 
 # Step 14 - Restart Apache and start Nagios service
 sudo systemctl restart apache2.service
-sudo systemctl start nagios.service
 
-# Step 15 - Install Nagios plugins
+# Step 15 - Install Nagios plugins dependencies
 sudo apt-get install -y autoconf gcc libc6 libmcrypt-dev make libssl-dev wget bc gawk dc build-essential snmp libnet-snmp-perl gettext
 
 # Step 16 - Download, extract, compile, and install the Nagios plugins package
@@ -93,10 +98,22 @@ sudo ./configure
 sudo make
 sudo make install
 
+# Step 17 - Install NRPE plugin
+sudo apt install -y nagios-nrpe-plugin
+
+# Make check_nrpe available to Nagios Core
+sudo ln -sf /usr/lib/nagios/plugins/check_nrpe \
+    /usr/local/nagios/libexec/check_nrpe
+
+# Verify
+ls -l /usr/local/nagios/libexec/check_nrpe
+
+# Validate Nagios configuration
+sudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
 # Final restart of Nagios service
 sudo systemctl restart nagios.service
 
+
+# Final message
 echo "Nagios installation and basic configuration completed. Access the Nagios web interface to continue."
-
-
-

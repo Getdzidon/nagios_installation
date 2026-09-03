@@ -1,12 +1,25 @@
 # #!/bin/bash 
 
+set -e
+
+NAGIOS_SERVER_IP="3.121.184.181"
+
 #ref: https://medium.com/@princeashok069/nagios-practical-028bd64c5c88
-# On the NAGIOS HOST (The server you are monitoring) | Install NRPE Client
+
+# On the MONITORED HOST | Install and configure NRPE
+
+# update and upgrade the system packages
+sudo apt update 
+sudo apt upgrade -y
 
 # Step 23: Download, Extract and Install NRPE Script in Remote Linux Host Machine
 
 # 1. open the AWS EC2 service and Launch an instance with the name Nagios-host-linux.
-# 2. Security group with HTTP at port 80, HTTPS at port 443, and SSH at port 22 traffic allowed in inbound rules.
+# 2. Configure the AWS Security Group:
+#    - SSH (22) from your administration IP
+#    - HTTP (80) as required
+#    - HTTPS (443) as required
+#    - NRPE (5666) from the Nagios server only
 # 3. Now connect to the super putty.
 # 4. Now we have to Download, extract and Install NRPE Script
 # 5. same as like above process change the directory “cd” to /opt
@@ -24,7 +37,7 @@ cd linux-nrpe-agent
 sudo ./fullinstall
 
 
-#step 24 and 25 is done on the NAGIOS SERVER
+# step 24 and 25 is done on the NAGIOS SERVER
 
 # Step 26: Install Apache2 Web Server in Remote Linux Host Machine
 sudo apt-get install apache2 -y
@@ -83,8 +96,8 @@ sudo bash -c 'cat > index.html <<EOL
     <div class="card">
         <h2>Hey there!</h2>
         <p>Welcome!</p>
-        <p>This is a Test Webpage on Host Number </p>
-        <p>By Firstbyte Trainees</p>
+        <p>This is a Test Webpage on Nagios-Host-01</p>
+        <p>By FirstByte Trainees</p>
         <p class="status">Online</p>
     </div>
 </body>
@@ -92,4 +105,10 @@ sudo bash -c 'cat > index.html <<EOL
 EOL'
 
 
-
+# Configure firewall
+sudo ufw allow OpenSSH
+sudo ufw allow Apache
+sudo ufw allow 'Apache Secure'
+sudo ufw allow from "$NAGIOS_SERVER_IP" to any port 5666 proto tcp
+sudo ufw enable
+sudo ufw reload
