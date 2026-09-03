@@ -3,8 +3,8 @@
 set -e
 
 # Nagios monitored host IP addresses
-NAGIOS_HOST_01_IP="63.177.107.39"
-NAGIOS_HOST_02_IP="3.72.247.138"
+NAGIOS_HOST_01_IP="3.73.85.128"
+NAGIOS_HOST_02_IP="18.194.99.126"
 NAGIOS_HOST_03_IP="3.73.85.72"
 
 #ref: https://medium.com/@princeashok069/nagios-practical-028bd64c5c88
@@ -14,7 +14,25 @@ NAGIOS_HOST_03_IP="3.73.85.72"
 
 # Note: Replace <nagios-host-public-ip> with the actual Public IP addresses of your NAGIOS HOST
 
-sudo bash -c 'cat > /usr/local/nagios/etc/servers/nagios-hosts.cfg <<EOL
+
+############################################################
+# Configure check_nrpe command
+############################################################
+
+# The default check_nrpe command only passes $ARG1$.
+# Our NRPE commands such as check_disk, check_users and
+# check_load require additional arguments, so $ARG2$ must
+# also be passed to the remote NRPE client.
+
+sudo sed -i '/^[[:space:]]*command_name[[:space:]]*check_nrpe[[:space:]]*$/{n;s|.*command_line.*|     command_line $USER1$/check_nrpe -H $HOSTADDRESS$ -c $ARG1$ -a "$ARG2$"|;}' \
+    /usr/local/nagios/etc/objects/commands.cfg
+
+
+############################################################
+# Add hosts and services to Nagios configuration
+############################################################
+
+sudo tee /usr/local/nagios/etc/servers/nagios-hosts.cfg > /dev/null <<EOL
 
 #################
 # Define hosts  
@@ -84,29 +102,29 @@ define service {
     use                     generic-service
     hostgroup_name          linux-hosts-for-nagios-monitoring
     service_description     Root Partition
-    check_command           check_nrpe!check_local_disk
+    check_command           check_nrpe!check_disk!-w 20% -c 10% -p /
 }
 
 
 # Define a service to check the number of currently logged in
-# users on the local machine.  Warning if > 20 users, critical if > 50 users.
+# users on the local machine.  Warning if > 5 users, critical if > 10 users.
 
 define service {
     use                     generic-service
     hostgroup_name          linux-hosts-for-nagios-monitoring
     service_description     Current Users
-    check_command           check_nrpe!check_local_users
+    check_command           check_nrpe!check_users!-w 5 -c 10
 }
 
 
 # Define a service to check the number of currently running procs
-# on the local machine.  Warning if > 250 processes, critical if > 400 processes.
+# on the local machine.  This command reports the current number of running processes.
 
 define service {
     use                     generic-service
     hostgroup_name          linux-hosts-for-nagios-monitoring
     service_description     Total Processes
-    check_command           check_nrpe!check_local_procs
+    check_command           check_nrpe!check_procs
 }
 
 
@@ -116,16 +134,41 @@ define service {
     use                     generic-service
     hostgroup_name          linux-hosts-for-nagios-monitoring
     service_description     Current Load
-    check_command           check_nrpe!check_local_load
+    check_command           check_nrpe!check_load!-w 5.0,4.0,3.0 -c 10.0,8.0,6.0
 }
 
-EOL'
+EOL
 
+
+############################################################
 # Validate configuration before restarting Nagios
-sudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+############################################################
 
-# Restart Nagios
-sudo systemctl restart nagios.service
+echo
+echo "=============================================="
+echo "Validating Nagios configuration..."
+echo "=============================================="
+
+if sudo /usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg; then
+
+    echo
+    echo "Nagios configuration is valid."
+    echo "Restarting Nagios..."
+
+    sudo systemctl restart nagios.service
+
+    echo
+    echo "Nagios restarted successfully."
+
+else
+
+    echo
+    echo "ERROR: Nagios configuration validation failed."
+    echo "Nagios was NOT restarted."
+    exit 1
+
+fi
+
 
 # Step 25 — Monitor the newly added host in the Nagios Website
 
@@ -149,4 +192,8 @@ sudo systemctl restart nagios.service
 # Step 30: Deletion (Optional)
 # You can terminate the Nagios and remote host instances if desired.
 
-echo "Nagios setup and monitoring configuration complete. Please verify the setup by visiting the Nagios web interface."
+echo
+echo "=============================================="
+echo "Nagios setup and monitoring configuration complete."
+echo "Please verify the setup by visiting the Nagios web interface."
+echo "=============================================="
