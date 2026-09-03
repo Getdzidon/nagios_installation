@@ -20,13 +20,30 @@ This guide uses:
 
 ## Prerequisites
 
-Create two EC2 instances:
+Create four EC2 instances:
 
-- **Nagios_Server**
--- Change DNS - sudo hostnamectl set-hostname nagios-server
+* **Nagios_Server**
 
-- **Nagios-Host**
--- Change DNS - sudo hostnamectl set-hostname nagios-host
+  Change hostname:
+
+  ```bash
+  sudo hostnamectl set-hostname nagios-server
+  ```
+
+  Change password for the ubuntu user:
+
+  ```bash
+  sudo passwd ubuntu
+  ```
+* **Nagios-Host-01, Nagios-Host-02, Nagios-Host-03**
+
+  Change hostname for each host:
+
+  ```bash
+  sudo hostnamectl set-hostname nagios-host-01
+  sudo hostnamectl set-hostname nagios-host-02
+  sudo hostnamectl set-hostname nagios-host-03
+  ```
 
 ### Security Group Rules
 
@@ -34,28 +51,28 @@ Create two EC2 instances:
 
 Allow inbound traffic for:
 
-| Port | Protocol | Purpose |
-|------|----------|---------|
-| 22 | TCP | SSH |
-| 80 | TCP | HTTP |
-| 443 | TCP | HTTPS |
-| 8080 | TCP | Custom TCP |
-| 8081 | TCP | Custom TCP |
-| 2377 | TCP | Custom TCP |
-| All ICMP - IPv4 | ICMP | Ping |
+| Port            | Protocol | Purpose    |
+| --------------- | -------- | ---------- |
+| 22              | TCP      | SSH        |
+| 80              | TCP      | HTTP       |
+| 443             | TCP      | HTTPS      |
+| 8080            | TCP      | Custom TCP |
+| 8081            | TCP      | Custom TCP |
+| 2377            | TCP      | Custom TCP |
+| All ICMP - IPv4 | ICMP     | Ping       |
 
-Reference:
-https://nagios-plugins.org/doc/man/index.html
+Reference: [Nagios Plugins Documentation](https://nagios-plugins.org/doc/man/index.html)
 
-#### Nagios_Host
+#### Nagios_Hosts
 
 Allow inbound traffic for:
 
 | Port | Protocol | Purpose |
-|------|----------|---------|
-| 22 | TCP | SSH |
-| 80 | TCP | HTTP |
-| 443 | TCP | HTTPS |
+| ---- | -------- | ------- |
+| 22   | TCP      | SSH     |
+| 80   | TCP      | HTTP    |
+| 443  | TCP      | HTTPS   |
+| 5666 | TCP      | NRPE    |
 
 ---
 
@@ -73,7 +90,9 @@ Follow the prompts whenever user interaction is required.
 
 ---
 
-### 2. Log in to the Nagios Web Interface using nagiosadmin (set in nagios_server1.sh line 77) and password you set at script runtime
+### 2. Log in to the Nagios Web Interface
+
+Use the `nagiosadmin` account (configured in `nagios_server1.sh` line 77) and the password set at script runtime.
 
 Open your browser and visit:
 
@@ -101,13 +120,13 @@ Nagios_server2.sh
 
 ### 4. Apply Configuration Changes
 
-Follow **Step 22** of this guide (https://medium.com/@princeashok069/nagios-practical-028bd64c5c88) to reschedule and apply the configuration changes.
+Follow [Step 22 of this guide](https://medium.com/@princeashok069/nagios-practical-028bd64c5c88) to reschedule and apply the configuration changes.
 
 ---
 
-### 5. Configure the Remote Host
+### 5. Configure the Remote Hosts
 
-On **Nagios_Host**, run:
+On **Nagios_Hosts**, (Nagios-Host-01, Nagios-Host-02, Nagios-Host-03) run:
 
 ```bash
 nagios_host.sh
@@ -119,15 +138,15 @@ Follow any prompts displayed during execution.
 
 ### 6. Add the Remote Host to Nagios
 
-On **Nagios_Server**, run:
+On the **Nagios_Server**, run:
 
 ```bash
-Nagios_server3.sh
+Nagios_server3_alt.sh
 ```
 
 > **Important**
 >
-> Before running the script, replace the placeholder IP address (for example, `52.59.195.250`) with the **public IP address of your Nagios_Host**.
+> Before running the script, replace the placeholder IP address (for example, `52.59.195.250`) with the **public IP address of your Nagios_Hosts**.
 
 ---
 
@@ -139,7 +158,7 @@ Your Nagios server should now be monitoring the remote Linux host.
 
 ## Bonus
 
-Open the public IP address of your **Nagios_Host** in your browser to view the sample website it is hosting.
+Open the public IP address of your **Nagios_Hosts** in your browser to view the sample website it is hosting.
 
 Example:
 
@@ -154,7 +173,7 @@ http://<Nagios_Host_Public_IP>
 If the scripts are not already on your server, you can:
 
 - Copy them manually
-- Use `scp` to transfer them
+- Or Use `scp` to transfer them
 
 After copying the scripts, make them executable:
 
@@ -179,5 +198,3 @@ Monitor the HTTP service from the Nagios web interface.
 ### Step 30
 
 Deletion / cleanup.
-
-

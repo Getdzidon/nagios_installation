@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This script is doing two main things on the Nagios server: 
+# It creates a 1 GB swap file to fix the Nagios "Swap usage" critical alert.
+# It provides instructions for accessing the Nagios web interface and manually rescheduling the check.
+
 #ref: https://medium.com/@princeashok069/nagios-practical-028bd64c5c88
 # ON THE NAGIOS SERVER
 
