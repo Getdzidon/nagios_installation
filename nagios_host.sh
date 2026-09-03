@@ -2,7 +2,7 @@
 
 set -e
 
-NAGIOS_SERVER_IP="3.121.184.181"
+NAGIOS_SERVER_IP="52.29.161.98"
 
 #ref: https://medium.com/@princeashok069/nagios-practical-028bd64c5c88
 
@@ -20,29 +20,59 @@ sudo apt upgrade -y
 #    - HTTP (80) as required
 #    - HTTPS (443) as required
 #    - NRPE (5666) from the Nagios server only
-# 3. Now connect to the super putty.
-# 4. Now we have to Download, extract and Install NRPE Script
-# 5. same as like above process change the directory “cd” to /opt
-# 6. Install “linux-nrpe-agent.tar.gz” by using “wget” command
-# 7. Now extract the “linux-nrpe-agent” by using “tar” command.
-# 8. Again change the directory to “ linux-nrpe-agent”
-# 9. Now run the command sudo ./fullinstall, while running it may ask permission then type “y” at the last you will get like this
-# *****10. Now copy the hostname/Public IP of the Nigos Server with help of this command you see the hostname “hostname -i”.
-# 11. paste that copied hostname to nagios-host-linux at allow from
 
+
+# Install NRPE
 cd /opt
 sudo wget http://assets.nagios.com/downloads/nagiosxi/agents/linux-nrpe-agent.tar.gz
 sudo tar xzf linux-nrpe-agent.tar.gz
 cd linux-nrpe-agent
 sudo ./fullinstall
 
+############################################################
+# Configure custom logged-in users check
+############################################################
+
+sudo tee /usr/local/nagios/libexec/check_active_users > /dev/null <<'EOF'
+#!/bin/bash
+
+USERS=$(loginctl list-sessions --no-legend | awk '$6=="user"{print $3}' | sort -u)
+COUNT=$(echo "$USERS" | sed '/^$/d' | wc -l)
+
+if [ "$COUNT" -gt 10 ]; then
+    echo "USERS CRITICAL - $COUNT users currently logged in"
+    exit 2
+elif [ "$COUNT" -gt 5 ]; then
+    echo "USERS WARNING - $COUNT users currently logged in"
+    exit 1
+else
+    echo "USERS OK - $COUNT users currently logged in"
+    exit 0
+fi
+EOF
+
+sudo chmod +x /usr/local/nagios/libexec/check_active_users
+
+sudo tee /usr/local/nagios/etc/nrpe/check_active_users.cfg > /dev/null <<'EOF'
+command[check_active_users]=/usr/local/nagios/libexec/check_active_users
+EOF
+
+sudo systemctl restart xinetd
+
 
 # step 24 and 25 is done on the NAGIOS SERVER
 
+############################################################
+# Install Apache
+############################################################
 # Step 26: Install Apache2 Web Server in Remote Linux Host Machine
 sudo apt-get install apache2 -y
 sudo systemctl start apache2
 
+
+############################################################
+# Deploy custom webpage
+############################################################
 # Step 27: Deploy Custom Webpage in Apache Web Server
 cd /var/www/html
 sudo rm index.html
@@ -105,10 +135,29 @@ sudo bash -c 'cat > index.html <<EOL
 EOL'
 
 
+############################################################
 # Configure firewall
+############################################################
 sudo ufw allow OpenSSH
 sudo ufw allow Apache
 sudo ufw allow 'Apache Secure'
 sudo ufw allow from "$NAGIOS_SERVER_IP" to any port 5666 proto tcp
+
 sudo ufw enable
 sudo ufw reload
+
+
+############################################################
+# Verify custom user check
+############################################################
+
+echo
+echo "Testing active users check:"
+sudo /usr/local/nagios/libexec/check_active_users
+
+echo
+echo "NRPE configuration:"
+sudo grep "check_active_users" /usr/local/nagios/etc/nrpe/check_active_users.cfg
+
+echo
+echo "Host configuration complete."
